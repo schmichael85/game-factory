@@ -1,6 +1,8 @@
 # Game Factory
 
-Small educational games that run offline in any browser. Each game is a single HTML file. To play, download it and double-click it.
+Small educational games that run in any browser (Windows, macOS, Chromebook, tablets). Play online: https://schmichael85.github.io/game-factory/
+
+They also run offline. Each game is a single HTML file. To play, download it and double-click it.
 
 ## Games
 
