@@ -10,36 +10,43 @@ body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient
 header{background:#3b2a1a;border-bottom:4px solid #1d140c;color:#fff;padding:14px;text-align:center}
 header h1{margin:0;font-size:30px;text-shadow:2px 2px 0 #000}
 header p{margin:6px 0 0;opacity:.9}
-main{max-width:860px;margin:0 auto;padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.grade{max-width:900px;margin:18px auto 0;padding:0 18px}
+.grade h2{margin:0 0 10px;font-size:24px;background:#5ea83a;color:#fff;display:inline-block;padding:4px 14px;border:3px solid #1f3d12;text-shadow:2px 2px 0 #1f3d12}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
 .card{display:block;text-decoration:none;color:#222;background:#c6c6c6;border:4px solid #373737;box-shadow:inset -5px -5px 0 #8b8b8b,inset 5px 5px 0 #fff;padding:18px;text-align:center;transition:transform .1s}
 .card:hover{transform:translateY(-3px);filter:brightness(1.05)}
 .card .ic{font-size:52px}
-.card h2{margin:8px 0 4px;font-size:22px}
+.card h3{margin:8px 0 4px;font-size:22px}
 .card .tag{display:inline-block;margin-top:8px;background:#5ea83a;color:#fff;border:2px solid #1f3d12;padding:2px 10px;font-weight:700;font-size:14px}
-.card.soon{opacity:.55;pointer-events:none}
-.card.soon .tag{background:#8f8f8f;border-color:#2b2b2b}
+.note{max-width:900px;margin:22px auto 0;padding:0 18px;color:#333;font-size:15px}
 #ground{position:fixed;bottom:0;left:0;right:0;height:40px;background:linear-gradient(#5fae3a 0 12px,#3f8a26 12px 15px,#8a5a32 15px)}
 </style>
 </head>
 <body>
 <header>
   <h1>🧱 Game Factory</h1>
-  <p>משחקים חינוכיים – בחרו משחק והתחילו לשחק!</p>
+  <p>משחקים חינוכיים – בחרו כיתה ומשחק, והתחילו לשחק!</p>
 </header>
-<main>
-  <a class="card" href="geometry/block-geometry.html">
-    <div class="ic">📐</div>
-    <h2>עולם הקוביות – גאומטריה</h2>
-    <div>זוויות, צורות ומשולשים, היקף ושטח</div>
-    <span class="tag">כיתה ה׳</span>
-  </a>
-  <div class="card soon">
-    <div class="ic">🔤</div>
-    <h2>אנגלית</h2>
-    <div>בקרוב...</div>
-    <span class="tag">בקרוב</span>
+
+<section class="grade">
+  <h2>כיתה ה׳</h2>
+  <div class="cards">
+    <a class="card" href="geometry/block-geometry.html"><div class="ic">📐</div><h3>גאומטריה</h3><div>זוויות, צורות ומשולשים, היקף ושטח</div><span class="tag">עולם הקוביות</span></a>
+    <a class="card" href="math/math-5.html"><div class="ic">🔢</div><h3>חשבון</h3><div>שברים, שברים עשרוניים, פעולות חשבון</div><span class="tag">עולם המספרים</span></a>
+    <a class="card" href="english/english-5.html"><div class="ic">🔤</div><h3>אנגלית</h3><div>אוצר מילים עם השמעה, דקדוק, קריאה ואיות</div><span class="tag">עולם האנגלית</span></a>
   </div>
-</main>
+</section>
+
+<section class="grade">
+  <h2>כיתה ב׳</h2>
+  <div class="cards">
+    <a class="card" href="geometry/geometry-2.html"><div class="ic">🔷</div><h3>צורות</h3><div>צורות, מדידה בסרגל, דפוסים וסימטריה</div><span class="tag">עולם הצורות</span></a>
+    <a class="card" href="math/math-2.html"><div class="ic">➕</div><h3>חשבון</h3><div>חיבור וחיסור, מספרים עד 100, כפל ראשון</div><span class="tag">עולם המספרים</span></a>
+    <a class="card" href="english/english-2.html"><div class="ic">🐶</div><h3>אנגלית</h3><div>אותיות, מילים ראשונות, צבעים ומספרים – עם השמעה</div><span class="tag">עולם האנגלית</span></a>
+  </div>
+</section>
+
+<p class="note">💡 כל ההתקדמות נשמרת רק במחשב הזה. אפשר ליצור כמה שחקנים (כפתור 👤 בתוך כל משחק), והשחקנים משותפים לכל המשחקים. במשחקי האנגלית צריך רמקול או אוזניות.</p>
 <div id="ground"></div>
 </body>
 </html>
