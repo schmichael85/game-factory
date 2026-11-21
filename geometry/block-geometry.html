@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>עולם הקוביות – גאומטריה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Rubik','Segoe UI',Arial,sans-serif;background:linear-gradient(#73c2f2,#bfe6ff 55%,#dff3ff);min-height:100vh;color:#222;padding-bottom:64px;-webkit-user-select:none;user-select:none}
+#ground{position:fixed;bottom:0;left:0;right:0;height:44px;z-index:0;
+  background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.09) 0 22px,transparent 22px 44px),linear-gradient(#5fae3a 0 12px,#3f8a26 12px 15px,#8a5a32 15px);}
+.cloud{position:fixed;background:#fff;opacity:.85;z-index:0;box-shadow:24px 0 0 #fff,48px 0 0 #fff,24px -18px 0 #fff}
+.cloud{width:24px;height:18px}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:8px 12px;background:#3b2a1a;border-bottom:4px solid #1d140c;color:#fff}
+header .title{font-weight:800;font-size:20px;flex:1;text-shadow:2px 2px 0 #000}
+.hud{display:flex;gap:10px;align-items:center;font-weight:800;font-size:17px}
+.hud span{background:#00000055;padding:4px 10px;border:2px solid #000}
+main{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:14px}
+.scr{display:none}.scr.on{display:block;animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(.97);opacity:0}to{transform:none;opacity:1}}
+.panel{background:#c6c6c6;border:4px solid #373737;box-shadow:inset -5px -5px 0 #8b8b8b,inset 5px 5px 0 #fff;padding:16px;margin-bottom:14px}
+.panel.dark{background:#6f6f6f;color:#fff;box-shadow:inset -5px -5px 0 #4a4a4a,inset 5px 5px 0 #959595}
+h1,h2,h3{margin:0 0 10px}
+h1{font-size:30px;text-shadow:3px 3px 0 #fff}
+h2{font-size:24px}
+.btn{font:inherit;font-weight:800;font-size:18px;cursor:pointer;color:#fff;background:#5ea83a;border:3px solid #1f3d12;box-shadow:inset -4px -4px 0 #3d7a22,inset 4px 4px 0 #8fd765;padding:10px 18px;text-shadow:2px 2px 0 #1f3d12}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:translateY(2px)}
+.btn.stone{background:#8f8f8f;border-color:#2b2b2b;box-shadow:inset -4px -4px 0 #5d5d5d,inset 4px 4px 0 #bdbdbd;text-shadow:2px 2px 0 #333}
+.btn.wood{background:#a87a4c;border-color:#3d2814;box-shadow:inset -4px -4px 0 #7a5530,inset 4px 4px 0 #cfa171;text-shadow:2px 2px 0 #3d2814}
+.btn.red{background:#c9473a;border-color:#4a120c;box-shadow:inset -4px -4px 0 #932f25,inset 4px 4px 0 #ec7c70;text-shadow:2px 2px 0 #4a120c}
+.btn.gold{background:#e3b22b;border-color:#5a4108;box-shadow:inset -4px -4px 0 #b38510,inset 4px 4px 0 #ffd969;text-shadow:2px 2px 0 #5a4108}
+.btn:disabled{opacity:.45;cursor:default;filter:grayscale(.6)}
+.mini{font:inherit;font-size:18px;background:#8f8f8f;border:2px solid #000;box-shadow:inset -3px -3px 0 #5d5d5d,inset 3px 3px 0 #bdbdbd;cursor:pointer;padding:3px 8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center{text-align:center}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{cursor:pointer;text-align:center;padding:18px 12px}
+.tile:hover{filter:brightness(1.06);transform:translateY(-2px)}
+.tile .ic{font-size:52px;line-height:1.1}
+.tile .nm{font-size:22px;font-weight:800;margin:6px 0}
+.tile .ds{font-size:15px;color:#333}
+.tile .st{margin-top:6px;font-weight:700;color:#5a3d00}
+.worlds{display:grid;gap:14px}
+.lvls{display:flex;gap:10px;flex-wrap:wrap}
+.lv{width:76px;height:84px;font:inherit;font-weight:800;font-size:24px;cursor:pointer;color:#fff;border:3px solid #222;background:#8a5a32;box-shadow:inset -4px -4px 0 #5e3c1f,inset 4px 4px 0 #b37d4c;text-shadow:2px 2px 0 #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0}
+.lv.world-angles{background:#7d7d7d;box-shadow:inset -4px -4px 0 #555,inset 4px 4px 0 #aaa}
+.lv.world-shapes{background:#4f9a3a;box-shadow:inset -4px -4px 0 #2f6b20,inset 4px 4px 0 #7fcf63}
+.lv .s{font-size:12px;letter-spacing:-1px}
+.lv:disabled{background:#444;box-shadow:none;cursor:default;opacity:.7}
+.qtext{font-size:22px;font-weight:600;line-height:1.5}
+.fig{width:100%;max-width:440px;display:block;margin:10px auto;background:#fffdf3;border:3px solid #373737}
+.fig .shp{fill:#a6dc84;stroke:#1f3d12;stroke-width:3;stroke-linejoin:round}
+.fig .ray{stroke:#2b1d0e;stroke-width:4;stroke-linecap:round}
+.fig .arc{fill:none;stroke:#e94f37;stroke-width:3}
+.fig .arc2{fill:none;stroke:#2a7bd6;stroke-width:3}
+.fig .lbl{font:800 18px Rubik,'Segoe UI',Arial;fill:#1b1b1b;text-anchor:middle}
+.fig .lbl.q{fill:#d62d20;font-size:24px}
+.fig .dash{stroke:#d62d20;stroke-width:2.5;stroke-dasharray:6 5}
+.fig .grid{stroke:#c9c2a6;stroke-width:1}
+.fig .cell{fill:#6ab04c;stroke:#2f5d1e;stroke-width:2}
+.fig .tick{stroke:#1f3d12;stroke-width:3}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.opt{font:inherit;font-size:20px;font-weight:700;padding:14px 8px;background:#f2f2f2;border:3px solid #373737;box-shadow:inset -4px -4px 0 #a9a9a9,inset 4px 4px 0 #fff;cursor:pointer;color:#222}
+.opt:hover:not(:disabled){background:#fff9d6}
+.opt:disabled{cursor:default}
+.opt.right{background:#7fd45a!important}
+.opt.wrong{background:#f07a6a!important}
+.fb{margin-top:12px;font-size:18px;line-height:1.6;min-height:10px}
+.fb .good{color:#1d7a12;font-weight:800;font-size:22px}
+.fb .bad{background:#fff3d6;border:3px solid #8a5a32;padding:10px 12px}
+.blocks{display:flex;gap:6px}
+.blk{width:34px;height:34px;border:3px solid #222;background:#8d8d8d;box-shadow:inset -3px -3px 0 #666,inset 3px 3px 0 #b5b5b5;display:flex;align-items:center;justify-content:center;font-size:18px}
+.blk.ore{background:#3ab9c4;box-shadow:inset -3px -3px 0 #23838b,inset 3px 3px 0 #8fe6ee}
+.blk.crk{background:#5a4a3a;box-shadow:none}
+.blk.cur{outline:3px dashed #e3b22b}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.timer{height:18px;border:3px solid #222;background:#444;flex:1;min-width:140px}
+.timer i{display:block;height:100%;background:#e3b22b;transition:width .25s linear}
+.big{font-size:26px;font-weight:800}
+#modal{position:fixed;inset:0;background:#0008;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
+#modal.hidden{display:none}
+#modal .panel{max-width:520px;width:100%;text-align:center;animation:pop .25s}
+.stars{font-size:46px;letter-spacing:6px;margin:8px 0}
+.stars .off{filter:grayscale(1) brightness(.6);opacity:.5}
+.board{width:100%;max-width:600px;display:block;margin:10px auto;touch-action:none;background:#e9dfc0;border:4px solid #373737;cursor:crosshair}
+.mis{display:flex;gap:6px;flex-wrap:wrap}
+.mis .lv{width:48px;height:54px;font-size:18px}
+.cv{width:100%;display:block;border:4px solid #373737;background:#9fd8ff}
+input.num{font:inherit;font-size:24px;font-weight:800;width:100px;text-align:center;padding:6px;border:3px solid #222}
+table.t{width:100%;border-collapse:collapse;background:#fff}
+table.t td,table.t th{border:2px solid #555;padding:6px 8px;text-align:right}
+table.t th{background:#e2e2e2}
+.bar{min-width:0;height:16px;background:#5ea83a;border:2px solid #1f3d12;display:inline-block;vertical-align:middle}
+.muted{color:#555;font-size:15px}
+.tag{display:inline-block;background:#fff3d6;border:2px solid #8a5a32;padding:2px 8px;margin:2px;font-size:15px}
+@media(max-width:640px){.tiles{grid-template-columns:1fr}.qtext{font-size:19px}.opt{font-size:17px}h1{font-size:24px}header .title{font-size:16px}}
+</style>
+</head>
+<body>
+<div class="cloud" style="top:90px;right:8%"></div>
+<div class="cloud" style="top:170px;left:12%"></div>
+<div class="cloud" style="top:320px;right:30%"></div>
+<header>
+  <button class="mini" id="homeBtn" title="בית">🏠</button>
+  <div class="title" id="gameTitle">עולם הקוביות</div>
+  <div class="hud"><span id="hudStars">⭐ 0</span><span id="hudGems">💎 0</span><button class="mini" id="muteBtn" title="צלילים">🔊</button></div>
+</header>
+<main>
+  <section class="scr" id="scr-menu"></section>
+  <section class="scr" id="scr-map"></section>
+  <section class="scr" id="scr-play"></section>
+  <section class="scr" id="scr-arcsel"></section>
+  <section class="scr" id="scr-build"></section>
+  <section class="scr" id="scr-cansel"></section>
+  <section class="scr" id="scr-cannon"></section>
+  <section class="scr" id="scr-parent"></section>
+</main>
+<div id="modal" class="hidden"><div class="panel" id="modalBox"></div></div>
+<div id="ground"></div>
+
+<script>
+'use strict';
+/* ========== helpers ========== */
+const $=s=>document.querySelector(s);
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const M=s=>`<bdi dir="ltr">${s}</bdi>`;
+const f1=n=>Math.round(n*10)/10;
+
+/* ========== storage ========== */
+const KEY='blockGeometryV1';
+let S;
+function defState(){return{stars:{},best:{},stats:{},topics:{angles:{c:0,t:0},shapes:{c:0,t:0},area:{c:0,t:0}},
+  modeTime:{quest:0,arcade:0,builder:0,cannon:0},modePlays:{quest:0,arcade:0,builder:0,cannon:0},ratings:{quest:[],arcade:[],builder:[],cannon:[]},
+  sessions:0,gems:0,totalTime:0,history:[],mute:false,name:''}}
+function load(){const d=defState();let o={};try{o=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+  S=Object.assign(d,o);for(const k of ['topics','modeTime','modePlays','ratings'])S[k]=Object.assign(defState()[k],o[k]||{})}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function totalStars(){return Object.values(S.stars).reduce((a,b)=>a+b,0)}
+function setStars(k,n){if((S.stars[k]||0)<n)S.stars[k]=n;save();hud()}
+function hud(){$('#gameTitle').textContent='עולם הקוביות'+(S.name?' של '+S.name:'');$('#hudStars').textContent='⭐ '+totalStars();$('#hudGems').textContent='💎 '+S.gems;$('#muteBtn').textContent=S.mute?'🔇':'🔊'}
+function record(type,topic,ok){const st=S.stats[type]||(S.stats[type]={c:0,t:0});st.t++;if(ok)st.c++;
+  const tp=S.topics[topic];if(tp){tp.t++;if(ok)tp.c++}if(ok)S.gems++;save();hud()}
+function addHistory(mode,detail,stars){const d=new Date();
+  S.history.unshift({d:d.toLocaleDateString('he-IL')+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}),m:mode,x:detail,s:stars});
+  S.history=S.history.slice(0,40);S.modePlays[mode]=(S.modePlays[mode]||0)+1;save()}
+
+/* ========== sound ========== */
+let AC=null;
+function beep(f,d=.12,type='square',v=.05,when=0){if(S.mute)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+when;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.03)}catch(e){}}
+const SND={ok(){beep(660,.1);beep(990,.16,'square',.05,.09)},bad(){beep(180,.28,'sawtooth',.045)},
+  win(){[523,659,784,1046].forEach((f,i)=>beep(f,.2,'square',.05,i*.12))},boom(){beep(110,.35,'sawtooth',.07);beep(70,.4,'square',.05,.05)},
+  click(){beep(500,.05,'square',.03)},shoot(){beep(300,.12,'triangle',.07);beep(200,.15,'triangle',.05,.05)}};
+
+/* ========== names ========== */
+const TOPICS={angles:{name:'זוויות',world:'מכרה הזוויות',icon:'📐'},shapes:{name:'צורות ומשולשים',world:'יער הצורות',icon:'🔺'},area:{name:'היקף ושטח',world:'כפר הבנאים',icon:'🏠'}};
+const MODES={quest:{name:'מסע הכרייה',icon:'⛏️'},arcade:{name:'מרוץ נגד השעון',icon:'⏱️'},builder:{name:'בנאי הקוביות',icon:'🧱'},cannon:{name:'תותח הזוויות',icon:'🎯'}};
+const TYPES={
+ ang_classify:['angles','סוגי זוויות (חדה, ישרה, קהה)',1],
+ ang_estimate:['angles','הערכת גודל של זווית',1],
+ ang_tri:['angles','זווית חסרה במשולש (סכום 180°)',1],
+ ang_line:['angles','זוויות צמודות על קו ישר',2],
+ ang_right:['angles','השלמה לזווית ישרה',2],
+ ang_point:['angles','זוויות סביב נקודה / במרובע (360°)',3],
+ sh_tri_sides:['shapes','סוגי משולשים לפי צלעות',1],
+ sh_tri_angles:['shapes','סוגי משולשים לפי זוויות',1],
+ sh_quad:['shapes','זיהוי מרובעים',1],
+ sh_poly:['shapes','שמות של מצולעים',1],
+ sh_truth:['shapes','תכונות של צורות (נכון / לא נכון)',2],
+ sh_exist:['shapes','האם משולש כזה קיים?',3],
+ ar_grid:['area','שטח והיקף על משבצות',1],
+ ar_rect_p:['area','היקף מלבן',1],
+ ar_rect_a:['area','שטח מלבן',1],
+ ar_square:['area','שטח והיקף של ריבוע',2],
+ ar_missing:['area','מציאת צלע חסרה',2],
+ ar_tri:['area','שטח משולש',3],
+ ar_para:['area','שטח מקבילית',3],
+ build:['area','בנייה לפי שטח והיקף (בנאי)',1],
+ cannon:['angles','הערכת זוויות (תותח)',1]
+};
+
+/* ========== svg helpers ========== */
+const svgW=(inner,w=300,h=200)=>`<svg class="fig" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+function pt(cx,cy,L,deg){const r=deg*Math.PI/180;return[f1(cx+L*Math.cos(r)),f1(cy-L*Math.sin(r))]}
+function arc(cx,cy,r,a1,a2,cls='arc'){const p=pt(cx,cy,r,a1),q=pt(cx,cy,r,a2);return`<path class="${cls}" d="M${p} A${r} ${r} 0 ${a2-a1>180?1:0} 0 ${q}"/>`}
+function lbl(x,y,t,q){return`<text class="lbl${q?' q':''}" x="${f1(x)}" y="${f1(y+6)}">${t}</text>`}
+function rightMark(cx,cy,a,s=16){const p=pt(cx,cy,s,a),q=pt(cx,cy,s,a+90);const c=[f1(p[0]+q[0]-cx),f1(p[1]+q[1]-cy)];return`<path d="M${p} L${c} L${q}" fill="none" stroke="#e94f37" stroke-width="3"/>`}
+function angleFig(deg,rot=0,noMark=false){
+  const flat=rot===0;const cx=150,cy=flat?165:100,L=flat?125:85;
+  const p=pt(cx,cy,L,rot),q=pt(cx,cy,L,rot+deg);
+  let s=`<line class="ray" x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}"/><line class="ray" x1="${cx}" y1="${cy}" x2="${q[0]}" y2="${q[1]}"/>`;
+  s+=(deg===90&&!noMark)?rightMark(cx,cy,rot,20):arc(cx,cy,30,rot,rot+deg);
+  s+=`<circle cx="${cx}" cy="${cy}" r="5" fill="#2b1d0e"/>`;return svgW(s)}
+function triPts(a,b){const r=Math.PI/180,c=180-a-b;const AC=Math.sin(b*r)/Math.sin(c*r);const P=[[0,0],[1,0],[AC*Math.cos(a*r),AC*Math.sin(a*r)]];
+  const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);const mnx=Math.min(...xs),mxx=Math.max(...xs),mxy=Math.max(...ys);
+  const sc=Math.min(210/(mxx-mnx),135/mxy);const off=(210-(mxx-mnx)*sc)/2;
+  return P.map(p=>[f1(45+(p[0]-mnx)*sc+off),f1(172-p[1]*sc)])}
+function triFig(P,labels,sides,extra=''){
+  const cen=[(P[0][0]+P[1][0]+P[2][0])/3,(P[0][1]+P[1][1]+P[2][1])/3];
+  let s=`<polygon class="shp" points="${P.map(p=>p.join(',')).join(' ')}"/>`;
+  if(labels)P.forEach((p,i)=>{if(!labels[i])return;const a=P[(i+1)%3],b=P[(i+2)%3];const u=[a[0]-p[0],a[1]-p[1]],v=[b[0]-p[0],b[1]-p[1]];const lu=Math.hypot(...u),lv=Math.hypot(...v);
+    const bx=u[0]/lu+v[0]/lv,by=u[1]/lu+v[1]/lv,bl=Math.hypot(bx,by)||1;const ang=Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1])/(lu*lv))));
+    const k=Math.max(28,Math.min(62,Math.min(lu,lv)*.45,24/Math.sin(ang/2)));s+=lbl(p[0]+bx/bl*k,p[1]+by/bl*k,labels[i],labels[i]==='?')});
+  if(sides)for(let i=0;i<3;i++){if(sides[i]==null)continue;const p=P[i],q=P[(i+1)%3];const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;const dx=mx-cen[0],dy=my-cen[1],L=Math.hypot(dx,dy)||1;s+=lbl(mx+dx/L*17,my+dy/L*17,sides[i],sides[i]==='?')}
+  return svgW(s+extra)}
+function tick(p,q,n){const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy);const ux=dx/L,uy=dy/L,nx=-uy,ny=ux;let s='';
+  for(let i=0;i<n;i++){const o=(i-(n-1)/2)*7;const cx=mx+ux*o,cy=my+uy*o;s+=`<line class="tick" x1="${f1(cx-nx*8)}" y1="${f1(cy-ny*8)}" x2="${f1(cx+nx*8)}" y2="${f1(cy+ny*8)}"/>`}return s}
+function polyFig(P,extra=''){return svgW(`<polygon class="shp" points="${P.map(p=>p.join(',')).join(' ')}"/>`+extra)}
+function rectFig(w,h,lw,lh){const sc=Math.min(200/w,120/h);const W=w*sc,H=h*sc,x=(300-W)/2,y=(175-H)/2+2;
+  return svgW(`<rect class="shp" x="${f1(x)}" y="${f1(y)}" width="${f1(W)}" height="${f1(H)}"/>`+rightMark(x,y+H,0,12)+lbl(150,y+H+18,lw,lw==='?')+lbl(x-20,y+H/2,lh,lh==='?'))}
+
+/* ========== question generators ========== */
+function numOpts(c,extras,unit=''){const set=[c];
+  for(const e of shuffle(extras)){if(set.length>=4)break;if(e>0&&Number.isInteger(e)&&!set.includes(e))set.push(e)}
+  let k=1;while(set.length<4){const st=c>=40?5:c>=12?2:1;for(const v of shuffle([c+k*st,c-k*st]))if(set.length<4&&v>0&&!set.includes(v))set.push(v);k++}
+  const arr=shuffle(set);return{opts:arr.map(v=>unit==='°'?M(v+'°'):unit?M(v)+unit:M(v)),ans:arr.indexOf(c)}}
+const fixDeg=s=>String(s).replace(/(\d+°)/g,'<bdi dir="ltr">$1</bdi>');
+function txtOpts(correct,wrongs){const arr=shuffle([correct,...wrongs]);return{opts:arr,ans:arr.indexOf(correct)}}
+const POLY=['משולש','מרובע','מחומש','משושה','משובע','מתומן'];
+const POLYL=['למשולש','למרובע','למחומש','למשושה','למשובע','למתומן'];
+const QUADS=['ריבוע','מלבן','מעוין','מקבילית','טרפז'];
+const QEXP=['<b>ריבוע</b>: 4 צלעות שוות ו־4 זוויות ישרות.','<b>מלבן</b>: 4 זוויות ישרות, והצלעות הנגדיות שוות.','<b>מעוין</b>: 4 צלעות שוות, אבל הזוויות אינן ישרות.','<b>מקבילית</b>: שני זוגות של צלעות מקבילות, והזוויות אינן ישרות.','<b>טרפז</b>: רק זוג אחד של צלעות מקבילות.'];
+const TRUE_ST=[['כל ריבוע הוא גם מלבן','לריבוע יש 4 זוויות ישרות – ולכן הוא מלבן מיוחד.'],['כל ריבוע הוא גם מעוין','לריבוע יש 4 צלעות שוות – ולכן הוא מעוין מיוחד.'],['סכום הזוויות במרובע הוא 360°','אפשר לחלק כל מרובע לשני משולשים: 180° + 180° = 360°.'],['במשולש שווה צלעות כל זווית היא 60°','180° מתחלקות שווה בשווה בין 3 זוויות: 180 : 3 = 60.'],['במקבילית הצלעות הנגדיות שוות זו לזו','זו אחת התכונות של מקבילית.'],['משולש ישר־זווית יכול להיות גם שווה שוקיים','למשל משולש שהזוויות שלו 90°, 45°, 45°.']];
+const FALSE_ST=[['כל מלבן הוא ריבוע','במלבן הצלעות לא חייבות להיות כולן שוות, ולכן לא כל מלבן הוא ריבוע.'],['במשולש יכולות להיות שתי זוויות ישרות','90° + 90° = 180°, ולא נשאר מקום לזווית השלישית.'],['במעוין כל הזוויות שוות','במעוין הצלעות שוות, אבל הזוויות לא חייבות להיות שוות.'],['לטרפז יש שני זוגות של צלעות מקבילות','לטרפז יש רק זוג אחד של צלעות מקבילות.'],['משולש יכול להיות גם ישר־זווית וגם קהה־זווית','90° ועוד זווית שגדולה מ־90° זה כבר יותר מ־180°.'],['סכום הזוויות במשולש הוא 360°','סכום הזוויות במשולש הוא 180°.'],['לכל מקבילית יש 4 זוויות ישרות','רק למלבן (וגם לריבוע) יש 4 זוויות ישרות.']];
+
+function polyomino(n,W=7,H=5){const set=new Set(['3,2']);let guard=0;while(set.size<n&&guard++<500){const[x,y]=pick([...set]).split(',').map(Number);const[dx,dy]=pick([[1,0],[-1,0],[0,1],[0,-1]]);const nx=x+dx,ny=y+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H)set.add(nx+','+ny)}return[...set].map(s=>s.split(',').map(Number))}
+function perimOf(cells){const set=new Set(cells.map(c=>c.join(',')));let p=0;for(const[x,y]of cells)for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(!set.has((x+dx)+','+(y+dy)))p++;return p}
+
+const G={
+ang_classify(d){let k=Math.random()<.15?3:R(0,2),deg;
+  if(k===0)deg=d===1?R(4,14)*5:R(3,16)*5;else if(k===1)deg=90;else if(k===2)deg=d===1?R(22,32)*5:R(20,33)*5;else deg=180;
+  const txt=d>=2&&Math.random()<.5;
+  return{text:txt?`זווית של ${M(deg+'°')} היא זווית…`:'איזו זווית מופיעה בציור?',svg:txt?'':angleFig(deg,d>=2?R(0,5)*30:0),
+   opts:['חדה','ישרה','קהה','שטוחה'],ans:k,exp:'זווית <b>חדה</b> קטנה מ־90°. זווית <b>ישרה</b> שווה בדיוק ל־90°. זווית <b>קהה</b> גדולה מ־90° וקטנה מ־180°. זווית <b>שטוחה</b> שווה ל־180° – היא נראית כמו קו ישר.'}},
+ang_estimate(d){const deg=R(2,34)*5,sp=d===1?40:d===2?25:15;
+  const ex=[deg+sp,deg-sp,deg+2*sp,deg-2*sp,deg+3*sp,deg-3*sp].filter(v=>v>=5&&v<=175);
+  return{text:'בערך כמה מעלות יש בזווית?',svg:angleFig(deg,d===3?R(0,5)*30:0,true),...numOpts(deg,ex,'°'),
+   exp:`הזווית היא ${M(deg+'°')}. טיפ: השוו אותה לזווית ישרה (90°) – ${deg===90?'זו בדיוק זווית ישרה!':deg<90?'היא קטנה ממנה, כלומר חדה.':'היא גדולה ממנה, כלומר קהה.'}`}},
+ang_tri(d){let a,b,c;do{if(d===1){a=R(3,10)*10;b=R(3,10)*10}else if(d===2){a=R(5,24)*5;b=R(5,24)*5}else{a=R(20,110);b=R(20,110)}c=180-a-b}while(c<20);
+  return{text:'מה גודל הזווית שמסומנת בסימן שאלה?',svg:triFig(triPts(a,b),[a+'°',b+'°','?']),...numOpts(c,[a+b,360-a-b,c+10,c-10,180-a,180-b],'°'),
+   exp:`סכום הזוויות בכל משולש הוא 180°, ולכן: ${M(`180 − ${a} − ${b} = ${c}`)}`}},
+ang_line(d){const x=R(3,33)*5,y=180-x,cx=150,cy=150;const q=pt(cx,cy,125,x);
+  let s=`<line class="ray" x1="20" y1="150" x2="280" y2="150"/><line class="ray" x1="${cx}" y1="${cy}" x2="${q[0]}" y2="${q[1]}"/>`+arc(cx,cy,30,0,x)+arc(cx,cy,22,x,180,'arc2');
+  const p1=pt(cx,cy,56,x/2),p2=pt(cx,cy,52,(x+180)/2);s+=lbl(p1[0],p1[1],x+'°')+lbl(p2[0],p2[1],'?',true)+`<circle cx="${cx}" cy="${cy}" r="5" fill="#2b1d0e"/>`;
+  return{text:'שתי הזוויות יחד יוצרות קו ישר. מה גודל הזווית שמסומנת בסימן שאלה?',svg:svgW(s),...numOpts(y,[90-x,360-x,x,y+10,y-10],'°'),
+   exp:`זוויות צמודות יוצרות יחד קו ישר, ולכן סכומן 180°: ${M(`180 − ${x} = ${y}`)}`}},
+ang_right(d){const x=R(2,16)*5,y=90-x,cx=95,cy=175;const p=pt(cx,cy,140,0),u=pt(cx,cy,140,90),m=pt(cx,cy,140,x);
+  let s=`<line class="ray" x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}"/><line class="ray" x1="${cx}" y1="${cy}" x2="${u[0]}" y2="${u[1]}"/><line class="ray" x1="${cx}" y1="${cy}" x2="${m[0]}" y2="${m[1]}"/>`;
+  s+=rightMark(cx,cy,0,13)+arc(cx,cy,42,0,x)+arc(cx,cy,34,x,90,'arc2');const l1=pt(cx,cy,x<30?105:72,x/2),l2=pt(cx,cy,y<30?105:72,(x+90)/2);s+=lbl(l1[0],l1[1],x+'°')+lbl(l2[0],l2[1],'?',true);
+  return{text:'הזווית הגדולה היא זווית ישרה. מה גודל הזווית שמסומנת בסימן שאלה?',svg:svgW(s),...numOpts(y,[180-x,x,y+10,y-5,90+x],'°'),
+   exp:`זווית ישרה היא 90°, ולכן: ${M(`90 − ${x} = ${y}`)}`}},
+ang_point(d){let a,b,c,e;do{a=R(8,28)*5;b=R(8,28)*5;c=R(8,28)*5;e=360-a-b-c}while(e<45||e>150);
+  if(Math.random()<.5){const cx=150,cy=100;const angs=[0,a,a+b,a+b+c];let s='';
+    angs.forEach(t=>{const q=pt(cx,cy,88,t);s+=`<line class="ray" x1="${cx}" y1="${cy}" x2="${q[0]}" y2="${q[1]}"/>`});
+    const vals=[a,b,c,'?'],sz=[a,b,c,e];angs.forEach((t,i)=>{const l=pt(cx,cy,52,t+sz[i]/2);s+=lbl(l[0],l[1],vals[i]==='?'?'?':vals[i]+'°',vals[i]==='?')});
+    s+=`<circle cx="${cx}" cy="${cy}" r="5" fill="#2b1d0e"/>`;
+    return{text:'ארבע זוויות סביב נקודה אחת. מה גודל הזווית שמסומנת בסימן שאלה?',svg:svgW(s),...numOpts(e,[180-a-b,e+10,e-10,360-a-b,e+20],'°'),
+     exp:`זוויות סביב נקודה משלימות סיבוב שלם – 360°: ${M(`360 − ${a} − ${b} − ${c} = ${e}`)}`}}
+  return{text:`במרובע יש שלוש זוויות בגודל ${M(a+'°, '+b+'°, '+c+'°')}. מה גודל הזווית הרביעית?`,svg:'',...numOpts(e,[180-a,e+10,e-10,e+20,Math.abs(180-a-b)],'°'),
+   exp:`סכום הזוויות במרובע הוא 360°: ${M(`360 − ${a} − ${b} − ${c} = ${e}`)}`}},
+sh_tri_sides(d){const k=R(0,2);let a,b;if(k===0){a=b=60}else if(k===1){a=b=pick([40,45,50,70,75])}else{[a,b]=pick([[40,75],[35,60],[50,80],[30,65],[45,95],[70,40],[55,35]])}
+  const P=triPts(a,b);const len=i=>Math.hypot(P[i][0]-P[(i+1)%3][0],P[i][1]-P[(i+1)%3][1]);const L=[len(0),len(1),len(2)],mx=Math.max(...L),tg=R(8,15);
+  let n=L.map(v=>Math.max(3,Math.round(v/mx*tg)));
+  if(k===0)n=[tg,tg,tg];if(k===1){n[2]=n[1];if(n[0]===n[1])n[0]+=n[0]>4?-2:2}if(k===2){let g=0;while(new Set(n).size<3&&g++<20)n[R(0,2)]++}
+  const names=['שווה צלעות','שווה שוקיים','שונה צלעות'];const ex=['במשולש <b>שווה צלעות</b> כל שלוש הצלעות שוות.','במשולש <b>שווה שוקיים</b> יש שתי צלעות שוות (השוקיים).','במשולש <b>שונה צלעות</b> כל הצלעות באורכים שונים.'];
+  const txt=d>=2&&Math.random()<.5;
+  return{text:txt?`אורכי הצלעות של משולש הם ${M(shuffle(n).join(', '))} ס"מ. איזה משולש זה?`:'איזה משולש מופיע בציור? (אורכי הצלעות בס"מ)',svg:txt?'':triFig(P,null,n),opts:names,ans:k,exp:ex[k]+' '+ex.filter((_,i)=>i!==k).join(' ')}},
+sh_tri_angles(d){const k=R(0,2);let a,b;
+  if(k===0){do{a=R(10,16)*5;b=R(10,16)*5}while(180-a-b<25||180-a-b>=90)}else if(k===1){a=90;b=R(5,13)*5}else{a=R(20,26)*5;b=R(4,Math.floor((150-a)/5))*5}
+  const A=[a,b,180-a-b];
+  const swap=Math.random()<.5;const P2=swap?triPts(b,a):triPts(a,b);const labs=swap?[b,a,180-a-b]:[a,b,180-a-b];
+  const names=['חד־זווית','ישר־זווית','קהה־זווית'];const ex=['במשולש <b>חד־זווית</b> כל שלוש הזוויות חדות (קטנות מ־90°).','במשולש <b>ישר־זווית</b> יש זווית של 90°.','במשולש <b>קהה־זווית</b> יש זווית אחת שגדולה מ־90°.'];
+  const txt=d>=2&&Math.random()<.5;
+  return{text:txt?`הזוויות של משולש הן ${M(shuffle(A).map(v=>v+'°').join(', '))}. איזה משולש זה?`:'איזה משולש מופיע בציור?',svg:txt?'':triFig(P2,labs.map(v=>v+'°')),opts:names,ans:k,exp:ex[k]+' '+ex.filter((_,i)=>i!==k).join(' ')}},
+sh_quad(d){const k=R(0,4);let P,ex='';
+  if(k===0){P=[[90,35],[210,35],[210,155],[90,155]];ex=rightMark(90,155,0,12)+rightMark(210,155,90,12)+[0,1,2,3].map(i=>tick(P[i],P[(i+1)%4],1)).join('')}
+  else if(k===1){P=[[45,55],[255,55],[255,150],[45,150]];ex=rightMark(45,150,0,12)+rightMark(255,150,90,12)+tick(P[0],P[1],1)+tick(P[2],P[3],1)+tick(P[1],P[2],2)+tick(P[3],P[0],2)}
+  else if(k===2){P=[[65,160],[175,160],[230,65],[120,65]];ex=[0,1,2,3].map(i=>tick(P[i],P[(i+1)%4],1)).join('')}
+  else if(k===3){P=[[40,160],[200,160],[260,70],[100,70]];ex=tick(P[0],P[1],1)+tick(P[2],P[3],1)+tick(P[1],P[2],2)+tick(P[3],P[0],2)}
+  else{P=[[40,160],[260,160],[205,60],[105,60]]}
+  const wr=shuffle(QUADS.filter((_,i)=>i!==k)).slice(0,3);
+  return{text:'מה השם המדויק ביותר של הצורה?',svg:polyFig(P,ex),...txtOpts(QUADS[k],wr),exp:QEXP[k]+(k<2?' (ריבוע הוא גם מלבן וגם מעוין, אבל "ריבוע" הוא השם המדויק ביותר.)':'')}},
+sh_poly(d){const i=R(0,5),n=i+3;
+  if(d>=2&&Math.random()<.5){return{text:`כמה צלעות יש ${POLYL[i]}?`,svg:'',...numOpts(n,[n+1,n-1,n+2,n-2].filter(v=>v>=3)),exp:`${POLYL[i]} יש ${n} צלעות (ו־${n} קודקודים).`}}
+  const P=[];for(let j=0;j<n;j++){const a=-90+j*360/n;P.push([f1(150+80*Math.cos(a*Math.PI/180)),f1(102+80*Math.sin(a*Math.PI/180))])}
+  const wr=shuffle(POLY.filter((_,j)=>j!==i)).slice(0,3);
+  return{text:'מה שם המצולע? (ספרו את הצלעות)',svg:polyFig(P),...txtOpts(POLY[i],wr),exp:`למצולע הזה יש ${n} צלעות, ולכן הוא ${POLY[i]}.`}},
+sh_truth(d){const askTrue=Math.random()<.5;
+  if(askTrue){const t=pick(TRUE_ST),f=shuffle(FALSE_ST).slice(0,3);return{text:'איזו טענה <b>נכונה</b>?',svg:'',...txtOpts(t[0],f.map(x=>x[0])),exp:t[1]}}
+  const f=pick(FALSE_ST),t=shuffle(TRUE_ST).slice(0,3);return{text:'איזו טענה <b>לא נכונה</b>?',svg:'',...txtOpts(f[0],t.map(x=>x[0])),exp:f[1]}},
+sh_exist(d){const fmt=a=>M(a.map(v=>v+'°').join(', '));let a=R(4,14)*5,b=R(4,Math.floor((175-a)/5)-1)*5;const good=[a,b,180-a-b];
+  const bads=[];const deltas=shuffle([10,-10,20,-20,30,5,-5]);for(const dd of deltas){if(bads.length>=3)break;const x=R(4,12)*5,y=R(4,12)*5,z=180+dd-x-y;if(z>0)bads.push([x,y,z])}
+  while(bads.length<3)bads.push([90,90,10]);
+  const arr=shuffle([good,...bads]);return{text:'איזו שלישייה יכולה להיות הזוויות של משולש?',svg:'',opts:arr.map(fmt),ans:arr.indexOf(good),
+   exp:`רק שלישייה שסכומה בדיוק 180° יכולה להיות זוויות של משולש: ${M(`${good[0]} + ${good[1]} + ${good[2]} = 180`)}`}},
+ar_grid(d){const n=d===1?R(4,8):R(5,10);const cells=polyomino(n);const p=perimOf(cells);const askP=d>=2&&Math.random()<.55;const cs=30,ox=45,oy=25;
+  let s='';for(let x=0;x<=7;x++)s+=`<line class="grid" x1="${ox+x*cs}" y1="${oy}" x2="${ox+x*cs}" y2="${oy+5*cs}"/>`;for(let y=0;y<=5;y++)s+=`<line class="grid" x1="${ox}" y1="${oy+y*cs}" x2="${ox+7*cs}" y2="${oy+y*cs}"/>`;
+  cells.forEach(([x,y])=>s+=`<rect class="cell" x="${ox+x*cs}" y="${oy+y*cs}" width="${cs}" height="${cs}"/>`);
+  if(!askP)return{text:'כל משבצת היא סמ"ר אחד. מה השטח של הצורה הירוקה?',svg:svgW(s),...numOpts(n,[p,n+1,n-1,n+2],' סמ"ר'),exp:`סופרים את המשבצות הירוקות: יש ${n} משבצות, ולכן השטח הוא ${n} סמ"ר.`};
+  return{text:'הצלע של כל משבצת היא 1 ס"מ. מה ההיקף של הצורה הירוקה?',svg:svgW(s),...numOpts(p,[n,p+2,p-2,p+1],' ס"מ'),exp:`ההיקף הוא האורך של כל הקו שמקיף את הצורה. סופרים את כל הצלעות החיצוניות: ${p} ס"מ. (שימו לב: ${n} זה מספר המשבצות – זה השטח, לא ההיקף.)`}},
+ar_rect_p(d){const mx=d===1?10:d===2?15:25;let w=R(2,mx),h=R(2,mx);if(w===h)w++;if(h>w)[w,h]=[h,w];const p=2*(w+h);
+  return{text:'מה ההיקף של המלבן? (האורכים בס"מ)',svg:rectFig(w,h,w,h),...numOpts(p,[w*h,w+h,2*w+h,p+2],' ס"מ'),exp:`היקף = סכום כל הצלעות: ${M(`${w} + ${h} + ${w} + ${h} = ${p}`)} ס"מ.`}},
+ar_rect_a(d){const mx=d===1?9:d===2?12:20;let w=R(2,mx),h=R(2,Math.min(mx,12));if(w===h)w++;if(h>w)[w,h]=[h,w];const a=w*h;
+  return{text:'מה השטח של המלבן? (האורכים בס"מ)',svg:rectFig(w,h,w,h),...numOpts(a,[2*(w+h),w+h,a+w,a-h],' סמ"ר'),exp:`שטח מלבן = אורך × רוחב: ${M(`${w} × ${h} = ${a}`)} סמ"ר.`}},
+ar_square(d){const s=R(2,12);const v=pick(d>=3?['sa','sp','ps','as']:['sa','sp']);
+  if(v==='sa')return{text:'מה השטח של הריבוע? (אורך הצלע בס"מ)',svg:rectFig(1,1,s,s),...numOpts(s*s,[4*s,2*s,s*s+s,s*s-s],' סמ"ר'),exp:`שטח ריבוע = צלע × צלע: ${M(`${s} × ${s} = ${s*s}`)} סמ"ר.`};
+  if(v==='sp')return{text:'מה ההיקף של הריבוע? (אורך הצלע בס"מ)',svg:rectFig(1,1,s,s),...numOpts(4*s,[s*s,2*s,3*s,4*s+4],' ס"מ'),exp:`לריבוע 4 צלעות שוות: ${M(`4 × ${s} = ${4*s}`)} ס"מ.`};
+  if(v==='ps')return{text:`ההיקף של ריבוע הוא ${4*s} ס"מ. מה אורך הצלע שלו?`,svg:'',...numOpts(s,[2*s,s+2,s-1,4*s-4].filter(x=>x!==4*s),' ס"מ'),exp:`לריבוע 4 צלעות שוות, ולכן: ${M(`${4*s} : 4 = ${s}`)} ס"מ.`};
+  return{text:`השטח של ריבוע הוא ${s*s} סמ"ר. מה אורך הצלע שלו?`,svg:'',...numOpts(s,[s*s/2,s+1,s-1,s*s/4,2*s],' ס"מ'),exp:`מחפשים מספר שכפול עצמו נותן ${s*s}: ${M(`${s} × ${s} = ${s*s}`)}, ולכן הצלע היא ${s} ס"מ.`}},
+ar_missing(d){let w=R(2,10),h=R(2,10);if(w===h)h=h<10?h+1:h-1;
+  if(Math.random()<.5){const A=w*h;return{text:`השטח של המלבן הוא ${A} סמ"ר. מה אורך הצלע שמסומנת בסימן שאלה? (בס"מ)`,svg:rectFig(w,h,w,'?'),...numOpts(h,[A-w,A/2,h+1,h-1,w],' ס"מ'),exp:`שטח = אורך × רוחב, ולכן: ${M(`${A} : ${w} = ${h}`)} ס"מ.`}}
+  const P=2*(w+h);return{text:`ההיקף של המלבן הוא ${P} ס"מ. מה אורך הצלע שמסומנת בסימן שאלה? (בס"מ)`,svg:rectFig(w,h,w,'?'),...numOpts(h,[P-w,P/2,P/2-w+1,P-2*w,h+2],' ס"מ'),
+   exp:`חצי מההיקף (${P/2}) הוא צלע ארוכה אחת ועוד צלע קצרה אחת, ולכן: ${M(`${P/2} − ${w} = ${h}`)} ס"מ.`}},
+ar_tri(d){let b,h;do{b=R(4,16);h=R(3,12)}while((b*h)%2);const ans=b*h/2;
+  const hp=Math.min(130,Math.max(60,h/b*220)),ax=R(90,210),ay=172-hp;
+  const P=[[40,172],[260,172],[ax,f1(ay)]];
+  const ex=`<line class="dash" x1="${ax}" y1="${f1(ay)}" x2="${ax}" y2="172"/>`+rightMark(ax,172,0,10)+lbl(150,190,b)+lbl(ax+18,ay+hp/2,h,false);
+  return{text:'מה השטח של המשולש? (הבסיס והגובה בס"מ, הגובה מסומן בקו מקווקו)',svg:triFig(P,null,null,ex).replace('viewBox="0 0 300 200"','viewBox="0 0 300 205"'),...numOpts(ans,[b*h,b+h,2*(b+h),ans+b],' סמ"ר'),
+   exp:`שטח משולש = (בסיס × גובה) : 2 = ${M(`(${b} × ${h}) : 2 = ${ans}`)} סמ"ר. (בלי החלוקה ב־2 היינו מקבלים שטח של מלבן שלם.)`}},
+ar_para(d){const b=R(4,14),h=R(3,10),s=h+R(1,4);const ans=b*h;
+  const P=[[45,165],[200,165],[255,60],[100,60]];
+  const ex=`<line class="dash" x1="100" y1="60" x2="100" y2="165"/>`+rightMark(100,165,0,10)+lbl(122,185,b)+lbl(112,118,h)+lbl(58,105,s);
+  return{text:'מה השטח של המקבילית? (האורכים בס"מ, הגובה מסומן בקו מקווקו)',svg:polyFig(P,ex),...numOpts(ans,[b*s,2*(b+s),ans%2?ans+1:ans/2,b+h],' סמ"ר'),
+   exp:`שטח מקבילית = בסיס × גובה: ${M(`${b} × ${h} = ${ans}`)} סמ"ר. שימו לב: משתמשים בגובה (הקו המקווקו), לא בצלע המשופעת (${s}).`}}
+};
+let lastType='';
+function gen(topic,d){const cands=Object.keys(G).filter(k=>TYPES[k][0]===topic&&TYPES[k][2]<=d&&k!==lastType);
+  const w=[];cands.forEach(k=>{const n=TYPES[k][2]===d?2:1;for(let i=0;i<n;i++)w.push(k)});
+  const t=pick(w);lastType=t;const q=G[t](d);q.type=t;q.topic=topic;return q}
+
+/* ========== screens ========== */
+let curMode=null;
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$('#scr-'+id).classList.add('on');window.scrollTo(0,0)}
+function setMode(m){curMode=m}
+function modal(html){$('#modalBox').innerHTML=html;$('#modal').classList.remove('hidden')}
+function closeModal(){$('#modal').classList.add('hidden')}
+function starStr(n,max=3){let s='';for(let i=0;i<max;i++)s+=i<n?'⭐':'<span class="off">⭐</span>';return s}
+function smallStars(n){return n?'⭐'.repeat(n):'·'}
+
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function askName(){modal(`<h2>👋 איך קוראים לך?</h2><input id="nmIn" maxlength="20" style="font:inherit;font-size:20px;padding:6px;width:80%;text-align:center" value="${esc(S.name||'')}"><div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="nmOk">יאללה!</button></div>`);
+  const go=()=>{S.name=$('#nmIn').value.trim().slice(0,20);save();hud();closeModal();menu()};$('#nmOk').onclick=go;$('#nmIn').onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>$('#nmIn').focus(),50)}
+function menu(){setMode(null);clearTimers();
+  const qs=Object.keys(S.stars).filter(k=>k[0]==='q').reduce((a,k)=>a+S.stars[k],0),as=Object.keys(S.stars).filter(k=>k[0]==='a').reduce((a,k)=>a+S.stars[k],0),
+   bs=Object.keys(S.stars).filter(k=>k[0]==='b').reduce((a,k)=>a+S.stars[k],0),cs=Object.keys(S.stars).filter(k=>k[0]==='c').reduce((a,k)=>a+S.stars[k],0);
+  $('#scr-menu').innerHTML=`
+  <div class="panel center"><h1>⛏️ שלום ${esc(S.name||'אלוף')}! ⛏️</h1><div class="muted" style="font-size:17px;color:#333">בחר משחק, אסוף כוכבים ויהלומים ותהיה אלוף הגאומטריה!</div></div>
+  <div class="tiles">
+   <div class="panel tile" data-go="quest"><div class="ic">⛏️</div><div class="nm">מסע הכרייה</div><div class="ds">שלושה עולמות, 18 שלבים. ענו נכון – וכרו יהלומים!</div><div class="st">⭐ ${qs} / 54</div></div>
+   <div class="panel tile" data-go="arcade"><div class="ic">⏱️</div><div class="nm">מרוץ נגד השעון</div><div class="ds">כמה שאלות תספיקו לפתור ב־60 שניות?</div><div class="st">⭐ ${as} / 12</div></div>
+   <div class="panel tile" data-go="builder"><div class="ic">🧱</div><div class="nm">בנאי הקוביות</div><div class="ds">בנו צורות מקוביות לפי משימות של שטח והיקף.</div><div class="st">⭐ ${bs} / 36</div></div>
+   <div class="panel tile" data-go="cannon"><div class="ic">🎯</div><div class="nm">תותח הזוויות</div><div class="ds">כוונו את התותח בזווית הנכונה ופגעו במטרות!</div><div class="st">⭐ ${cs} / 18</div></div>
+  </div>
+  <div class="center" style="margin-top:6px"><button class="btn stone" id="parentBtn">👨‍👧 אזור הורים</button></div>`;
+  $('#scr-menu').querySelectorAll('[data-go]').forEach(t=>t.onclick=()=>{SND.click();({quest:questMap,arcade:arcadeSel,builder:()=>builder(firstOpenMission()),cannon:cannonSel})[t.dataset.go]()});
+  $('#parentBtn').onclick=parentGate;show('menu')}
+
+/* ---------- QUEST ---------- */
+function questMap(){setMode('quest');clearTimers();
+  let h=`<div class="panel"><h2>⛏️ מסע הכרייה</h2><div class="muted">בכל שלב 5 שאלות. 3 תשובות נכונות פותחות את השלב הבא. 5 מתוך 5 = שלושה כוכבים!</div></div><div class="worlds">`;
+  for(const t of Object.keys(TOPICS)){h+=`<div class="panel"><h3>${TOPICS[t].icon} ${TOPICS[t].world} – ${TOPICS[t].name}</h3><div class="lvls">`;
+    for(let i=0;i<6;i++){const st=S.stars[`q-${t}-${i}`]||0;const open=i===0||(S.stars[`q-${t}-${i-1}`]||0)>0;
+      h+=`<button class="lv world-${t}" ${open?'':'disabled'} data-t="${t}" data-i="${i}">${open?i+1:'🔒'}<span class="s">${open?smallStars(st):''}</span></button>`}
+    h+=`</div><div class="muted" style="margin-top:6px">שלבים 1–2: קל · 3–4: בינוני · 5–6: מאתגר</div></div>`}
+  h+='</div>';$('#scr-map').innerHTML=h;
+  $('#scr-map').querySelectorAll('.lv[data-t]').forEach(b=>b.onclick=()=>{SND.click();startQuest(b.dataset.t,+b.dataset.i)});show('map')}
+let Q={};
+function startQuest(topic,lvl){Q={kind:'quest',topic,lvl,i:0,ok:0,n:5,diff:[1,1,2,2,3,3][lvl],res:[]};
+  $('#scr-play').innerHTML=`<div class="panel"><div class="phead"><div class="big">${TOPICS[topic].icon} ${TOPICS[topic].world} · שלב ${lvl+1}</div><div class="blocks" id="blocks"></div></div>
+   <div class="qtext" id="qtext"></div><div id="qfig"></div><div class="opts" id="qopts"></div><div class="fb" id="qfb"></div></div>
+   <div class="center"><button class="btn stone" id="quitBtn">↩ חזרה למפה</button></div>`;
+  $('#quitBtn').onclick=questMap;show('play');nextQ()}
+function drawBlocks(){let h='';for(let i=0;i<Q.n;i++){const r=Q.res[i];h+=`<div class="blk ${r===true?'ore':r===false?'crk':''} ${i===Q.i&&r===undefined?'cur':''}">${r===true?'💎':r===false?'✖':''}</div>`}$('#blocks').innerHTML=h}
+function nextQ(){if(Q.kind==='quest'){if(Q.i>=Q.n)return finishQuest();drawBlocks()}
+  const topic=Q.topic==='mix'?pick(['angles','shapes','area']):Q.topic;const d=Q.kind==='arcade'?(Q.correct<4?1:Q.correct<9?2:3):Q.diff;
+  const q=gen(topic,d);Q.cur=q;Q.locked=false;
+  $('#qtext').innerHTML=fixDeg(q.text);$('#qfig').innerHTML=q.svg||'';$('#qfb').innerHTML='';
+  $('#qopts').innerHTML=q.opts.map((o,i)=>`<button class="opt" data-i="${i}">${fixDeg(o)}</button>`).join('');
+  $('#qopts').querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(+b.dataset.i))}
+function answer(i){if(Q.locked)return;Q.locked=true;const q=Q.cur,ok=i===q.ans;record(q.type,q.topic,ok);
+  const bs=$('#qopts').querySelectorAll('.opt');bs.forEach(b=>b.disabled=true);bs[q.ans].classList.add('right');if(!ok)bs[i].classList.add('wrong');
+  if(Q.kind==='quest'){Q.res[Q.i]=ok;if(ok)Q.ok++;drawBlocks();
+    if(ok){SND.ok();$('#qfb').innerHTML=`<div class="good">${pick(['✔ כל הכבוד!','✔ מצוין!','✔ נכון מאוד!','✔ אלוף!','✔ יפה מאוד!'])} 💎</div>`;setTimeout(()=>{Q.i++;nextQ()},900)}
+    else{SND.bad();$('#qfb').innerHTML=`<div class="bad"><b>✘ לא בדיוק.</b> ${fixDeg(q.exp)}<div style="margin-top:10px"><button class="btn" id="contBtn">הבנתי, ממשיכים ←</button></div></div>`;$('#contBtn').onclick=()=>{Q.i++;nextQ()}}}
+  else arcadeAnswer(ok,q)}
+function finishQuest(){const st=Q.ok===5?3:Q.ok===4?2:Q.ok===3?1:0;const k=`q-${Q.topic}-${Q.lvl}`;if(st)setStars(k,st);
+  addHistory('quest',`${TOPICS[Q.topic].world} שלב ${Q.lvl+1}: ${Q.ok}/5`,st);if(st)SND.win();else SND.bad();
+  results({title:st?'השלב הושלם!':'כמעט! נסו שוב',stars:st,line:`ענית נכון על ${Q.ok} מתוך 5 שאלות.${st?'':' צריך לפחות 3 כדי לעבור.'}`,
+   again:()=>startQuest(Q.topic,Q.lvl),back:questMap,next:st&&Q.lvl<5?()=>startQuest(Q.topic,Q.lvl+1):null,mode:'quest'})}
+
+/* ---------- results modal ---------- */
+function results(o){
+  modal(`<h2>${o.title}</h2><div class="stars">${starStr(o.stars)}</div><div style="font-size:19px;margin-bottom:12px">${o.line}</div>
+   <div class="row" style="justify-content:center">${o.next?'<button class="btn gold" id="rNext">לשלב הבא ←</button>':''}<button class="btn" id="rAgain">🔁 שוב</button><button class="btn stone" id="rBack">↩ חזרה</button></div>
+   <div style="margin-top:16px;border-top:3px dashed #888;padding-top:10px"><div style="font-weight:700">איך היה המשחק?</div>
+   <div class="row" style="justify-content:center;margin-top:6px" id="rate"><button class="mini" data-r="3" style="font-size:28px">😀</button><button class="mini" data-r="2" style="font-size:28px">😐</button><button class="mini" data-r="1" style="font-size:28px">🙁</button></div></div>`);
+  $('#rAgain').onclick=()=>{closeModal();o.again()};$('#rBack').onclick=()=>{closeModal();o.back()};if(o.next)$('#rNext').onclick=()=>{closeModal();o.next()};
+  $('#rate').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.ratings[o.mode].push(+b.dataset.r);S.ratings[o.mode]=S.ratings[o.mode].slice(-30);save();$('#rate').innerHTML='<span>תודה! 👍</span>'})}
+
+/* ---------- ARCADE ---------- */
+let timers=[];function clearTimers(){timers.forEach(t=>{clearInterval(t);clearTimeout(t)});timers=[]}
+function arcadeSel(){setMode('arcade');clearTimers();
+  const opts=[['angles','📐 זוויות'],['shapes','🔺 צורות ומשולשים'],['area','🏠 היקף ושטח'],['mix','🌀 הכל ביחד']];
+  $('#scr-arcsel').innerHTML=`<div class="panel"><h2>⏱️ מרוץ נגד השעון</h2><div class="muted">60 שניות. כל תשובה נכונה ברצף מגדילה את הבונוס (×2, ×3…). טעות מורידה 3 שניות. השאלות נעשות קשות יותר ככל שמצליחים!</div></div>
+   <div class="tiles">${opts.map(([k,n])=>`<div class="panel tile" data-k="${k}"><div class="nm">${n}</div><div class="st">שיא: ${S.best[k]||0} נק' · ${starStr(S.stars['a-'+k]||0)}</div></div>`).join('')}</div>
+   <div class="muted center">⭐ = 6 נכונות · ⭐⭐ = 10 · ⭐⭐⭐ = 14</div>`;
+  $('#scr-arcsel').querySelectorAll('[data-k]').forEach(t=>t.onclick=()=>{SND.click();startArcade(t.dataset.k)});show('arcsel')}
+function startArcade(topic){clearTimers();Q={kind:'arcade',topic,score:0,combo:1,correct:0,wrong:0,time:60};
+  $('#scr-play').innerHTML=`<div class="panel"><div class="phead"><div class="big">⏱️ <span id="tleft">60</span></div><div class="timer"><i id="tbar" style="width:100%"></i></div>
+   <div class="big">🏆 <span id="score">0</span> <span id="combo" style="color:#c9473a"></span></div></div>
+   <div class="qtext" id="qtext"></div><div id="qfig"></div><div class="opts" id="qopts"></div><div class="fb" id="qfb"></div></div>
+   <div class="center"><button class="btn stone" id="quitBtn">↩ יציאה</button></div>`;
+  $('#quitBtn').onclick=()=>{clearTimers();arcadeSel()};show('play');nextQ();
+  timers.push(setInterval(()=>{Q.time-=.25;updTimer();if(Q.time<=0){clearTimers();finishArcade()}},250))}
+function updTimer(){const t=Math.max(0,Q.time);$('#tleft').textContent=Math.ceil(t);$('#tbar').style.width=(t/60*100)+'%';$('#tbar').style.background=t<10?'#c9473a':'#e3b22b'}
+function arcadeAnswer(ok,q){if(ok){SND.ok();Q.correct++;Q.score+=10*Q.combo;Q.combo=Math.min(Q.combo+1,5);$('#qfb').innerHTML=`<div class="good">+${10*(Q.combo>1?Q.combo-1:1)}</div>`;timers.push(setTimeout(nextQ,350))}
+  else{SND.bad();Q.wrong++;Q.combo=1;Q.time-=3;updTimer();$('#qfb').innerHTML=`<div class="bad" style="padding:6px 10px">−3 שניות. ${fixDeg(q.exp)}</div>`;timers.push(setTimeout(nextQ,2200))}
+  $('#score').textContent=Q.score;$('#combo').textContent=Q.combo>1?'×'+Q.combo:''}
+function finishArcade(){Q.locked=true;const st=Q.correct>=14?3:Q.correct>=10?2:Q.correct>=6?1:0;if(st)setStars('a-'+Q.topic,st);
+  const rec=Q.score>(S.best[Q.topic]||0);if(rec){S.best[Q.topic]=Q.score;save()}SND.win();
+  const tn=Q.topic==='mix'?'הכל ביחד':TOPICS[Q.topic].name;addHistory('arcade',`${tn}: ${Q.correct} נכונות, ${Q.wrong} טעויות, ${Q.score} נק'`,st);
+  results({title:rec?'🏆 שיא חדש!':'הזמן נגמר!',stars:st,line:`${Q.score} נקודות · ${Q.correct} תשובות נכונות · ${Q.wrong} טעויות`,again:()=>startArcade(Q.topic),back:arcadeSel,mode:'arcade'})}
+
+/* ---------- BUILDER ---------- */
+const MISSIONS=[
+ {t:'בנו מלבן ששטחו 6 משבצות',area:6,rect:1},
+ {t:'בנו ריבוע ששטחו 9 משבצות',area:9,square:1},
+ {t:'בנו צורה כלשהי ששטחה 7 משבצות',area:7},
+ {t:'בנו מלבן שהיקפו 12',perim:12,rect:1},
+ {t:'בנו ריבוע שהיקפו 16',perim:16,square:1},
+ {t:'בנו מלבן ששטחו 12 משבצות והיקפו 14',area:12,perim:14,rect:1},
+ {t:'בנו מלבן ששטחו 12 משבצות והיקפו 16',area:12,perim:16,rect:1},
+ {t:'בנו מלבן ששטחו 16 משבצות – אבל שלא יהיה ריבוע!',area:16,rect:1,notSquare:1},
+ {t:'בנו צורה ששטחה 6 משבצות והיקפה 14',area:6,perim:14},
+ {t:'בנו צורה ששטחה 5 משבצות והיקפה 12',area:5,perim:12},
+ {t:'בנו צורה ששטחה 8 משבצות והיקפה 16',area:8,perim:16},
+ {t:'בנו מלבן ששטחו 24 משבצות והיקפו 20',area:24,perim:20,rect:1}];
+function hintOf(m){if(m.square&&m.area)return`בריבוע האורך שווה לרוחב. איזה מספר כפול עצמו נותן ${m.area}?`;
+  if(m.square&&m.perim)return`לריבוע 4 צלעות שוות: ${M(`${m.perim} : 4 = ?`)}`;
+  if(m.rect&&m.area&&m.perim)return`חפשו אורך ורוחב שהכפל שלהם הוא ${m.area} והסכום שלהם הוא ${m.perim/2} (חצי מההיקף).`;
+  if(m.rect&&m.perim)return`אורך + רוחב צריכים להיות ${m.perim/2} (חצי מההיקף).`;
+  if(m.rect&&m.notSquare)return`חפשו שני מספרים <b>שונים</b> שהכפל שלהם הוא ${m.area}. (הלוח ברוחב 12 ובגובה 9.)`;
+  if(m.rect)return`חפשו שני מספרים שהכפל שלהם הוא ${m.area}.`;
+  if(m.perim)return'כדי להגדיל את ההיקף בלי לשנות את השטח – פרשו את הקוביות לצורה ארוכה ומפותלת. כדי להקטין אותו – קבצו אותן יחד לגוש.';
+  return`כל צורה טובה – העיקר שיהיו בדיוק ${m.area} קוביות שנוגעות זו בזו בצלע.`}
+const BW=12,BH=9,BC=40;let B={cells:new Set(),m:0,tries:0,showP:false};
+function firstOpenMission(){for(let i=0;i<MISSIONS.length;i++)if(!(S.stars['b-'+i]>0))return i;return 0}
+function builder(mi){setMode('builder');clearTimers();B={cells:new Set(),m:mi,tries:0,showP:false,done:false};const m=MISSIONS[mi];
+  let ml='';MISSIONS.forEach((_,i)=>{const open=i===0||(S.stars['b-'+(i-1)]||0)>0;ml+=`<button class="lv" ${open?'':'disabled'} data-m="${i}" style="${i===mi?'outline:4px solid #e3b22b':''}">${open?i+1:'🔒'}<span class="s">${open?smallStars(S.stars['b-'+i]||0):''}</span></button>`});
+  $('#scr-build').innerHTML=`<div class="panel"><h2>🧱 בנאי הקוביות</h2><div class="mis">${ml}</div></div>
+   <div class="panel"><div class="qtext">משימה ${mi+1}: ${m.t}</div><div class="muted">לחצו או גררו על הלוח כדי להניח קוביות (לחיצה על קובייה מורידה אותה). כל קובייה = משבצת אחת, וכל צלע שלה = 1. כל הקוביות צריכות להיות מחוברות לצורה אחת.</div>
+   <svg class="board" id="board" viewBox="0 0 ${BW*BC} ${BH*BC}"></svg>
+   <div class="row" style="justify-content:center"><div class="big" id="bArea">שטח: 0</div></div>
+   <div class="row" style="justify-content:center;margin-top:8px"><button class="btn gold" id="bCheck">✔ בדיקה</button><button class="btn wood" id="bHint">💡 רמז</button><button class="btn stone" id="bClear">🧹 נקה</button><button class="btn stone" id="bBack">↩ תפריט</button></div>
+   <div class="fb" id="bfb"></div></div>`;
+  $('#scr-build').querySelectorAll('.lv[data-m]').forEach(b=>b.onclick=()=>{SND.click();builder(+b.dataset.m)});
+  $('#bCheck').onclick=bCheck;$('#bClear').onclick=()=>{B.cells.clear();B.showP=false;$('#bfb').innerHTML='';drawBoard()};
+  $('#bHint').onclick=()=>{$('#bfb').innerHTML=`<div class="bad">💡 ${hintOf(m)}</div>`};$('#bBack').onclick=menu;
+  const sv=$('#board');let paint=null;
+  const cellAt=e=>{const r=sv.getBoundingClientRect();const x=Math.floor((e.clientX-r.left)/r.width*BW),y=Math.floor((e.clientY-r.top)/r.height*BH);return(x>=0&&x<BW&&y>=0&&y<BH)?x+','+y:null};
+  const setC=(c,v)=>{if(!c||B.done)return;const had=B.cells.has(c);if(v&&!had){B.cells.add(c);beep(700,.03,'square',.02)}else if(!v&&had){B.cells.delete(c);beep(300,.03,'square',.02)}else return;B.showP=false;drawBoard()};
+  sv.addEventListener('pointerdown',e=>{const c=cellAt(e);if(!c)return;e.preventDefault();paint=!B.cells.has(c);setC(c,paint);try{sv.setPointerCapture(e.pointerId)}catch(_){}});
+  sv.addEventListener('pointermove',e=>{if(paint===null)return;setC(cellAt(e),paint)});
+  const up=()=>paint=null;sv.addEventListener('pointerup',up);sv.addEventListener('pointercancel',up);
+  drawBoard();show('build')}
+function drawBoard(){let s='';for(let x=0;x<=BW;x++)s+=`<line x1="${x*BC}" y1="0" x2="${x*BC}" y2="${BH*BC}" stroke="#cbbf98" stroke-width="1.5"/>`;for(let y=0;y<=BH;y++)s+=`<line x1="0" y1="${y*BC}" x2="${BW*BC}" y2="${y*BC}" stroke="#cbbf98" stroke-width="1.5"/>`;
+  for(const c of B.cells){const[x,y]=c.split(',').map(Number);const X=x*BC,Y=y*BC;
+    s+=`<rect x="${X}" y="${Y}" width="${BC}" height="${BC}" fill="#8a5a32"/><rect x="${X}" y="${Y}" width="${BC}" height="12" fill="#5fae3a"/><rect x="${X+6}" y="${Y+20}" width="6" height="6" fill="#6e4524"/><rect x="${X+24}" y="${Y+28}" width="6" height="6" fill="#6e4524"/><rect x="${X}" y="${Y}" width="${BC}" height="${BC}" fill="none" stroke="#2c1a0b" stroke-width="2"/>`}
+  if(B.showP){for(const c of B.cells){const[x,y]=c.split(',').map(Number);const X=x*BC,Y=y*BC;
+    if(!B.cells.has(x+','+(y-1)))s+=`<line x1="${X}" y1="${Y}" x2="${X+BC}" y2="${Y}" stroke="#e8231a" stroke-width="6" stroke-linecap="round"/>`;
+    if(!B.cells.has(x+','+(y+1)))s+=`<line x1="${X}" y1="${Y+BC}" x2="${X+BC}" y2="${Y+BC}" stroke="#e8231a" stroke-width="6" stroke-linecap="round"/>`;
+    if(!B.cells.has((x-1)+','+y))s+=`<line x1="${X}" y1="${Y}" x2="${X}" y2="${Y+BC}" stroke="#e8231a" stroke-width="6" stroke-linecap="round"/>`;
+    if(!B.cells.has((x+1)+','+y))s+=`<line x1="${X+BC}" y1="${Y}" x2="${X+BC}" y2="${Y+BC}" stroke="#e8231a" stroke-width="6" stroke-linecap="round"/>`}}
+  $('#board').innerHTML=s;$('#bArea').textContent='שטח: '+B.cells.size+' משבצות'}
+function bCheck(){if(B.done)return;const m=MISSIONS[B.m];const cells=[...B.cells].map(c=>c.split(',').map(Number));
+  if(!cells.length){$('#bfb').innerHTML='<div class="bad">הלוח ריק – הניחו קוביות קודם 🙂</div>';return}
+  B.tries++;const n=cells.length,p=perimOf(cells);
+  const seen=new Set([cells[0].join(',')]),st=[cells[0]];while(st.length){const[x,y]=st.pop();for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const k=(x+dx)+','+(y+dy);if(B.cells.has(k)&&!seen.has(k)){seen.add(k);st.push([x+dx,y+dy])}}}
+  const conn=seen.size===n;const xs=cells.map(c=>c[0]),ys=cells.map(c=>c[1]);const w=Math.max(...xs)-Math.min(...xs)+1,h=Math.max(...ys)-Math.min(...ys)+1;const isRect=w*h===n;
+  const errs=[];if(!conn)errs.push('הקוביות צריכות להיות מחוברות זו לזו (צלע לצלע) לצורה אחת.');
+  if(m.area&&n!==m.area)errs.push(`השטח של הצורה שלכם הוא <b>${n}</b> משבצות, וצריך <b>${m.area}</b>.`);
+  if(m.perim&&p!==m.perim)errs.push(`ההיקף של הצורה שלכם הוא <b>${p}</b> (הקו האדום), וצריך <b>${m.perim}</b>.`);
+  if((m.rect||m.square)&&!isRect)errs.push(`הצורה צריכה להיות ${m.square?'ריבוע':'מלבן'} מלא – בלי חורים ובלי בליטות.`);
+  else if(m.square&&w!==h)errs.push(`זה מלבן של ${M(w+'×'+h)} – בריבוע האורך והרוחב שווים.`);
+  if(m.notSquare&&isRect&&w===h)errs.push('זה ריבוע! המשימה היא מלבן שאינו ריבוע.');
+  B.showP=true;drawBoard();const ok=!errs.length;record('build','area',ok);
+  if(!ok){SND.bad();$('#bfb').innerHTML=`<div class="bad"><b>עוד לא…</b><br>${errs.join('<br>')}<br><span class="muted">הקו האדום מראה את ההיקף. נסו לשנות ולבדוק שוב!</span></div>`;return}
+  B.done=true;const sc=B.tries===1?3:B.tries===2?2:1;setStars('b-'+B.m,sc);SND.win();addHistory('builder',`משימה ${B.m+1}: הצליח בניסיון ${B.tries}`,sc);
+  $('#bfb').innerHTML=`<div class="good">✔ מעולה! שטח ${n}, היקף ${p}${isRect?` (${M(w+'×'+h)})`:''}</div>`;
+  setTimeout(()=>results({title:'משימה הושלמה!',stars:sc,line:`הצלחתם בניסיון ה־${B.tries}. שטח: ${n} משבצות · היקף: ${p}`,again:()=>builder(B.m),back:menu,next:B.m<MISSIONS.length-1?()=>builder(B.m+1):null,mode:'builder'}),900)}
+
+/* ---------- CANNON ---------- */
+const CL=[{prot:'full',tol:8},{prot:'full',tol:6},{prot:'half',tol:8},{prot:'half',tol:6},{prot:'none',tol:8},{prot:'none',tol:6}];
+function cannonSel(){setMode('cannon');clearTimers();
+  let h=`<div class="panel"><h2>🎯 תותח הזוויות</h2><div style="font-size:17px">התותח עומד על הקרקע. <b>0°</b> זה ימינה לאורך הקרקע, <b>90°</b> זה ישר למעלה, ו־<b>180°</b> זה שמאלה. הקלידו את הזווית של המטרה ולחצו "אש!". בכל שלב 8 מטרות.</div></div><div class="panel"><div class="lvls">`;
+  CL.forEach((c,i)=>{const open=i===0||(S.stars['c-'+(i-1)]||0)>0;h+=`<button class="lv" ${open?'':'disabled'} data-i="${i}">${open?i+1:'🔒'}<span class="s">${open?smallStars(S.stars['c-'+i]||0):''}</span></button>`});
+  h+=`</div><div class="muted" style="margin-top:8px">שלבים 1–2: מד־זווית מלא · 3–4: מד־זווית חלקי · 5–6: בלי מד־זווית – רק הערכה! ⭐ = 4 פגיעות · ⭐⭐ = 6 · ⭐⭐⭐ = 7</div></div>`;
+  $('#scr-cansel').innerHTML=fixDeg(h);$('#scr-cansel').querySelectorAll('.lv').forEach(b=>b.onclick=()=>{SND.click();startCannon(+b.dataset.i)});show('cansel')}
+let CN={};const CX=300,CY=300;
+function startCannon(lv){clearTimers();CN={lv,shot:0,hits:0,n:8,aim:90,target:0,busy:false,prev:-99};const c=CL[lv];
+  let prot='';if(c.prot!=='none'){prot+=`<path d="M${CX-170} ${CY} A170 170 0 0 1 ${CX+170} ${CY} Z" fill="#ffffff66" stroke="#555" stroke-width="2"/>`;
+    const step=c.prot==='full'?10:45;for(let a=0;a<=180;a+=c.prot==='full'?5:15){const big=a%step===0;const p=pt(CX,CY,170,a),q=pt(CX,CY,big?150:160,a);prot+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#333" stroke-width="${big?2.5:1.2}"/>`;
+      if(big&&(c.prot!=='full'||a%30===0)){const l=pt(CX,CY,134,a);prot+=`<text x="${l[0]}" y="${l[1]+5}" font-size="14" font-weight="800" text-anchor="middle" fill="#222">${a}</text>`}}}
+  prot+=`<text x="${CX+250}" y="${CY+28}" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">0°</text><text x="${CX-250}" y="${CY+28}" font-size="18" font-weight="800" fill="#fff" text-anchor="middle">180°</text><text x="${CX}" y="22" font-size="18" font-weight="800" fill="#1d3b6b" text-anchor="middle">90° ↑</text>`;
+  $('#scr-cannon').innerHTML=`<div class="panel"><div class="phead"><div class="big">🎯 שלב ${lv+1}</div><div class="big">מטרה <span id="cShot">1</span>/8 · פגיעות: <span id="cHits">0</span></div></div>
+   <svg class="cv" viewBox="0 0 600 340" id="cv"><rect x="0" y="${CY}" width="600" height="40" fill="#8a5a32"/><rect x="0" y="${CY}" width="600" height="10" fill="#5fae3a"/>
+    ${prot}<g id="rev"></g><g id="tgt"></g>
+    <g id="barrel" transform="rotate(-90 ${CX} ${CY})"><rect x="${CX}" y="${CY-9}" width="70" height="18" fill="#3a3a3a" stroke="#111" stroke-width="2"/><rect x="${CX+58}" y="${CY-11}" width="14" height="22" fill="#222"/></g>
+    <rect x="${CX-22}" y="${CY-14}" width="44" height="24" fill="#7a7a7a" stroke="#222" stroke-width="3"/><circle cx="${CX}" cy="${CY}" r="7" fill="#222"/>
+    <rect id="ball" x="-20" y="-20" width="12" height="12" fill="#222"/><g id="parts"></g></svg>
+   <div class="row" style="justify-content:center;margin-top:12px"><button class="btn stone" data-d="-10">−10</button><button class="btn stone" data-d="-1">−1</button>
+    <input class="num" id="cIn" type="number" min="0" max="180" inputmode="numeric" placeholder="?"><span class="big">°</span>
+    <button class="btn stone" data-d="1">+1</button><button class="btn stone" data-d="10">+10</button><button class="btn red" id="fire">💥 אש!</button></div>
+   <div class="fb center" id="cfb"></div></div><div class="center"><button class="btn stone" id="cBack">↩ חזרה</button></div>`;
+  $('#scr-cannon').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const v=parseInt($('#cIn').value);$('#cIn').value=Math.max(0,Math.min(180,(isNaN(v)?90:v)+ +b.dataset.d))});
+  $('#fire').onclick=fire;$('#cIn').addEventListener('keydown',e=>{if(e.key==='Enter')fire()});$('#cBack').onclick=()=>{clearTimers();cannonSel()};
+  show('cannon');newTarget()}
+function newTarget(){let a;do{a=R(2,34)*5}while(Math.abs(a-CN.prev)<20);CN.prev=a;CN.target=a;CN.busy=false;
+  const p=pt(CX,CY,235,a);CN.tp=p;$('#tgt').innerHTML=`<g><rect x="${p[0]-18}" y="${p[1]-18}" width="36" height="36" fill="#c9a26b" stroke="#5a3d1a" stroke-width="3"/><circle cx="${p[0]}" cy="${p[1]}" r="13" fill="#fff" stroke="#c9302c" stroke-width="5"/><circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#c9302c"/></g>`;
+  $('#rev').innerHTML='';$('#cfb').innerHTML='<span class="muted">באיזו זווית נמצאת המטרה?</span>';$('#cShot').textContent=CN.shot+1;$('#cIn').value='';$('#fire').disabled=false;setTimeout(()=>{try{$('#cIn').focus()}catch(e){}},50)}
+function anim(dur,step,done){const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/dur);step(k);if(k<1)requestAnimationFrame(f);else done&&done()};requestAnimationFrame(f)}
+function fire(){if(CN.busy)return;const v=parseInt($('#cIn').value);if(isNaN(v)||v<0||v>180){$('#cfb').innerHTML='<span style="color:#c9302c;font-weight:700">הקלידו מספר בין 0 ל־180</span>';return}
+  CN.busy=true;$('#fire').disabled=true;const from=CN.aim;
+  anim(450,k=>{CN.aim=from+(v-from)*k;$('#barrel').setAttribute('transform',`rotate(${-CN.aim} ${CX} ${CY})`)},()=>{SND.shoot();const ball=$('#ball');
+    anim(500,k=>{const p=pt(CX,CY,70+220*k,v);ball.setAttribute('x',p[0]-6);ball.setAttribute('y',p[1]-6)},()=>{ball.setAttribute('x',-20);
+      const hit=Math.abs(v-CN.target)<=CL[CN.lv].tol;CN.shot++;if(hit)CN.hits++;record('cannon','angles',hit);
+      const q=pt(CX,CY,235,CN.target);$('#rev').innerHTML=`<line x1="${CX}" y1="${CY}" x2="${q[0]}" y2="${q[1]}" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>`+arc(CX,CY,60,0,CN.target).replace('class="arc"','fill="none" stroke="#ffd23f" stroke-width="5"')+(()=>{const l=pt(CX,CY,92,CN.target/2);return`<text x="${l[0]}" y="${l[1]+6}" font-size="20" font-weight="800" text-anchor="middle" fill="#ffd23f" stroke="#000" stroke-width="1">${CN.target}°</text>`})();
+      $('#cHits').textContent=CN.hits;
+      if(hit){SND.boom();explode(CN.tp);$('#tgt').innerHTML='';$('#cfb').innerHTML=`<div class="good">🎯 פגיעה! המטרה הייתה ב־${M(CN.target+'°')} וירית ב־${M(v+'°')}</div>`}
+      else{SND.bad();const df=Math.abs(v-CN.target);$('#cfb').innerHTML=`<div class="bad">פספוס! ירית ב־${M(v+'°')}, והמטרה הייתה ב־${M(CN.target+'°')} (הפרש של ${df}°). ${v<CN.target?'היה צריך זווית גדולה יותר – יותר שמאלה.':'היה צריך זווית קטנה יותר – יותר ימינה.'}</div>`}
+      timers.push(setTimeout(()=>{if(CN.shot>=CN.n)finishCannon();else newTarget()},hit?1700:2800))})})}
+function explode(p){const g=$('#parts');let h='';const ps=[];for(let i=0;i<14;i++){ps.push({x:p[0],y:p[1],vx:R(-90,90),vy:R(-140,20),c:pick(['#c9a26b','#c9302c','#fff','#5a3d1a'])})}
+  anim(700,k=>{h='';ps.forEach(o=>{const x=o.x+o.vx*k,y=o.y+o.vy*k+160*k*k;h+=`<rect x="${f1(x)}" y="${f1(y)}" width="8" height="8" fill="${o.c}" opacity="${1-k}"/>`});g.innerHTML=h},()=>g.innerHTML='')}
+function finishCannon(){const st=CN.hits>=7?3:CN.hits>=6?2:CN.hits>=4?1:0;if(st)setStars('c-'+CN.lv,st);addHistory('cannon',`שלב ${CN.lv+1}: ${CN.hits}/8 פגיעות`,st);st?SND.win():SND.bad();
+  results({title:st?'כל הכבוד, תותחן!':'נסו שוב!',stars:st,line:`פגעת ב־${CN.hits} מתוך 8 מטרות.${st?'':' צריך לפחות 4 כדי לעבור.'}`,again:()=>startCannon(CN.lv),back:cannonSel,next:st&&CN.lv<5?()=>startCannon(CN.lv+1):null,mode:'cannon'})}
+
+/* ---------- PARENT ---------- */
+function parentGate(){const a=R(12,19),b=R(13,24);
+  modal(`<h2>👨‍👧 אזור הורים</h2><div style="font-size:18px">כדי להיכנס, פתרו: ${M(a+' × '+b+' = ?')}</div><div class="row" style="justify-content:center;margin:12px 0"><input class="num" id="pg" type="number" inputmode="numeric"></div>
+   <div class="row" style="justify-content:center"><button class="btn" id="pgOk">כניסה</button><button class="btn stone" id="pgNo">ביטול</button></div><div id="pgE" style="color:#c9302c;font-weight:700;margin-top:6px"></div>`);
+  const go=()=>{if(+$('#pg').value===a*b){closeModal();parent()}else $('#pgE').textContent='לא נכון'};$('#pgOk').onclick=go;$('#pg').addEventListener('keydown',e=>{if(e.key==='Enter')go()});$('#pgNo').onclick=closeModal;setTimeout(()=>$('#pg').focus(),50)}
+const mins=s=>s<60?'פחות מדקה':Math.round(s/60)+' דק\'';
+function parent(){setMode(null);clearTimers();
+  const pct=o=>o.t?Math.round(o.c/o.t*100)+'%':'—';
+  let tp='';for(const k of Object.keys(TOPICS)){const o=S.topics[k];tp+=`<tr><td>${TOPICS[k].icon} ${TOPICS[k].name}</td><td>${o.t}</td><td>${pct(o)}</td><td>${o.c?`<span class="bar" style="width:${Math.round(o.c/o.t*120)}px"></span>`:''}</td></tr>`}
+  const types=Object.entries(S.stats).filter(([k,o])=>o.t>=3&&TYPES[k]).map(([k,o])=>({k,a:o.c/o.t,o})).sort((x,y)=>x.a-y.a);
+  const weak=types.filter(x=>x.a<.75).slice(0,5),strong=types.filter(x=>x.a>=.85).sort((x,y)=>y.o.t-x.o.t).slice(0,5);
+  const mt=Math.max(1,...Object.values(S.modeTime));let md='';
+  for(const k of Object.keys(MODES)){const r=S.ratings[k]||[];const avg=r.length?r.reduce((a,b)=>a+b,0)/r.length:0;const face=!r.length?'—':avg>=2.5?'😀':avg>=1.7?'😐':'🙁';
+    md+=`<tr><td>${MODES[k].icon} ${MODES[k].name}</td><td>${S.modeTime[k]?`<span class="bar" style="width:${Math.round(S.modeTime[k]/mt*120)}px"></span> `:''}${mins(S.modeTime[k])}</td><td>${S.modePlays[k]||0}</td><td>${face} ${r.length?`(${r.length})`:''}</td></tr>`}
+  const fav=Object.keys(MODES).sort((a,b)=>S.modeTime[b]-S.modeTime[a])[0];
+  const hist=S.history.slice(0,12).map(h=>`<tr><td>${h.d}</td><td>${MODES[h.m]?MODES[h.m].icon:''} ${h.x}</td><td>${smallStars(h.s)}</td></tr>`).join('')||'<tr><td colspan="3">עוד אין משחקים</td></tr>';
+  $('#scr-parent').innerHTML=`<div class="panel"><h2>👨‍👧 דוח התקדמות${S.name?' – '+esc(S.name):''}</h2>
+   <div class="row" style="font-size:18px;gap:18px"><span>⏳ זמן משחק כולל: <b>${mins(S.totalTime)}</b></span><span>📅 כניסות: <b>${S.sessions}</b></span><span>⭐ כוכבים: <b>${totalStars()}</b> / 120</span><span>💎 יהלומים: <b>${S.gems}</b></span></div></div>
+   <div class="panel"><h3>לפי נושא</h3><table class="t"><tr><th>נושא</th><th>שאלות</th><th>הצלחה</th><th></th></tr>${tp}</table></div>
+   <div class="panel"><h3>⚠️ כדאי לחזק</h3>${weak.length?weak.map(x=>`<span class="tag">${TYPES[x.k][1]} – ${Math.round(x.a*100)}% (${x.o.t})</span>`).join(''):'<span class="muted">אין עדיין נקודות חלשות ברורות (צריך לפחות 3 ניסיונות בכל סוג שאלה).</span>'}
+   <h3 style="margin-top:12px">💪 חזק ב־</h3>${strong.length?strong.map(x=>`<span class="tag" style="background:#e3f7d6;border-color:#3d7a22">${TYPES[x.k][1]} – ${Math.round(x.a*100)}%</span>`).join(''):'<span class="muted">עוד אין מספיק נתונים.</span>'}</div>
+   <div class="panel"><h3>🎮 איזה סוג משחק הוא אוהב?</h3><table class="t"><tr><th>משחק</th><th>זמן</th><th>משחקים</th><th>דירוג שלו</th></tr>${md}</table>
+   <div class="muted" style="margin-top:6px">${S.totalTime>120?`עד עכשיו הכי הרבה זמן ב: <b>${MODES[fav].name}</b>. `:''}"דירוג שלו" = מה שהשחקן בחר בסוף כל משחק (😀/😐/🙁).</div></div>
+   <div class="panel"><h3>🕑 משחקים אחרונים</h3><table class="t"><tr><th>מתי</th><th>מה</th><th>כוכבים</th></tr>${hist}</table></div>
+   <div class="row" style="justify-content:center"><button class="btn" id="pBack">↩ חזרה למשחק</button><button class="btn wood" id="pName">✏️ שינוי שם השחקן</button><button class="btn red" id="pReset">🗑 איפוס כל ההתקדמות</button></div>`;
+  $('#pBack').onclick=menu;$('#pName').onclick=askName;$('#pReset').onclick=()=>{modal(`<h2>לאפס הכל?</h2><div>כל הכוכבים, השיאים והנתונים יימחקו.</div><div class="row" style="justify-content:center;margin-top:12px"><button class="btn red" id="rsY">כן, לאפס</button><button class="btn stone" id="rsN">ביטול</button></div>`);
+    $('#rsY').onclick=()=>{const m=S.mute,nm=S.name;S=defState();S.mute=m;S.name=nm;S.sessions=1;save();hud();closeModal();parent()};$('#rsN').onclick=closeModal};show('parent')}
+
+/* ---------- session timer & break ---------- */
+let sessSec=0,breakAt=15*60;
+setInterval(()=>{if(document.hidden||!curMode)return;S.modeTime[curMode]=(S.modeTime[curMode]||0)+1;S.totalTime++;sessSec++;if(sessSec%10===0)save();
+  if(sessSec>=breakAt&&$('#modal').classList.contains('hidden')){breakAt=sessSec+5*60;
+    modal(`<h2>🕒 עבודה מצוינת!</h2><div style="font-size:19px">שיחקת כבר ${Math.round(sessSec/60)} דקות ואספת ${totalStars()} כוכבים בסך הכל.<br>זה זמן טוב להפסקה – לשתות מים ולזוז קצת 🙂</div>
+     <div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="brStop">סיימתי להיום 👋</button><button class="btn stone" id="brMore">עוד 5 דקות</button></div>`);
+    $('#brStop').onclick=()=>{closeModal();clearTimers();menu()};$('#brMore').onclick=closeModal}},1000);
+
+/* ---------- init ---------- */
+load();S.sessions++;save();hud();
+$('#homeBtn').onclick=()=>{closeModal();menu()};
+$('#muteBtn').onclick=()=>{S.mute=!S.mute;save();hud()};
+menu();if(!S.name)askName();
+</script>
+</body>
+</html>
